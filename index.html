@@ -28,8 +28,10 @@
 
     let ws;
 
+
     function connect() {
-        ws = new WebSocket('ws://localhost:3000');
+        // Use Render.com WebSocket URL
+        ws = new WebSocket('wss://random-chatmate.onrender.com');
 
         ws.onopen = () => {
             chatMessages.innerHTML = '';
