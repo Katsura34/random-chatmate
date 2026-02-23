@@ -1,6 +1,7 @@
 // Simple random chat server using Node.js and ws
 const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 3000 });
+const port = process.env.PORT || 3000;
+const wss = new WebSocket.Server({ port });
 
 let waiting = null; // Waiting client
 const pairs = new Map(); // Map: client -> partner
