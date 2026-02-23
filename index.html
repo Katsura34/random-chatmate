@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+</head>
+<body>
+      <div class="container-chat">
+        <div class="chat-header">
+            <h2>Chat</h2>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be displayed here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button id="send-button">Send</button>
+            <button id="clear-button">Next</button>
+        </div>
+       
+      </div>
+   <script>
+    const sendButton = document.getElementById('send-button');
+    const messageInput = document.getElementById('message-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const clearButton = document.getElementById('clear-button');
+
+    let ws;
+
+    function connect() {
+        ws = new WebSocket('ws://localhost:3000');
+
+        ws.onopen = () => {
+            chatMessages.innerHTML = '';
+            addSystemMessage('Connected. Waiting for a stranger...');
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'info') {
+                addSystemMessage(data.message);
+            } else if (data.type === 'message') {
+                addMessage('Stranger', data.message);
+            }
+        };
+
+        ws.onclose = () => {
+            addSystemMessage('Disconnected. Refreshing to find a new stranger...');
+        };
+    }
+
+    function addMessage(sender, message) {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = sender + ': ' + message;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function addSystemMessage(message) {
+        const messageElement = document.createElement('div');
+        messageElement.style.fontStyle = 'italic';
+        messageElement.style.color = '#888';
+        messageElement.textContent = message;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    sendButton.addEventListener('click', () => {
+        const message = messageInput.value.trim();
+        if (message && ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(message);
+            addMessage('You', message);
+            messageInput.value = '';
+        }
+    });
+
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            sendButton.click();
+        }
+    });
+
+    clearButton.addEventListener('click', () => {
+        if (ws) ws.close();
+        chatMessages.innerHTML = '';
+        connect();
+    });
+
+    connect();
+   </script>
+</body>
+</html>
